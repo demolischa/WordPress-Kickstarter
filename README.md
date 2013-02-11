@@ -1,30 +1,53 @@
-# WordPress Skeleton
+# WordPress Kickstarter
 
-This is simply a skeleton repo for a WordPress site. Use it to jump-start your WordPress site repos, or fork it and customize it to your own liking!
+This is a basic repo that I use to kickstart my WordPress sites. It was inspired by and based on Mark Jaquith's WordPress-Skeleton but I have since made many changes to better fit the way I work. I'm in the process of writing a post detailing my WordPress Development Environment and Deployment Strategy which this is a core compnenet of. Use it to kickstart your WordPress site repos, or fork it and customise it to your own liking!
 
-## Assumptions
+## Overview
 
-* WordPress as a Git submodule in `/wp/`
-* Custom content directory in `/content/` (cleaner, and also because it can't be in `/wp/`)
-* `wp-config.php` in the root (because it can't be in `/wp/`)
-* All writable directories are symlinked to similarly named locations under `/shared/`.
+* WordPress is included as a Git submodule in `/wp/`
+* There is a custom content directory in the root `/wp-content/` (it can't be in `/wp/`)
+* `wp-config.php` is in the root (because it can't be in `/wp/`)
+* There is a .gitignore file
 
-## Questions & Answers
+## Instructions
 
-**Q:** Will you accept pull requests?  
-**A:** Maybe. I made this for my own use, and thought people might find it useful. It you want to take it in a different direction and make your own customized skeleton, then just maintain your own fork.
+### Managing WordPress as a Git Submodule 
 
-**Q:** Why the `/shared/` symlink stuff for uploads?  
-**A:** For local development, create `/shared/` (it is ignored by Git), and have the files live there. For production, have your deploy script (Capistrano is my choice) look for symlinks pointing to `/shared/` and repoint them to some outside-the-repo location (like an NFS shared directory or something). This gives you separation between Git-managed code and uploaded files.
+When you clone this repo you will notice that the `/wp` directory is initially empty. To fix that you need to run two commands, `$ git submodule init` and `$ git submodule update`. The WordPress repo is synced via SVN every 15 minutes and includs branches and tags. You will want to ensure your project is using the current stable version of WordPress. As of writing, this is 3.5.1. To do that `$ cd wp` and `$ git checkout 3.5.1`. This has now updated the WordPress repository to 3.5.1. Commit the changes to your main project by running `git commit -am "Checkout Wordpress 3.5.1"`. The subrepository is now isolated, and we don’t want to make any changes to it, besides updating WordPress. When you want to do that you simple checkout and commit the latest version. 
 
-**Q:** What version of WordPress does this track?  
-**A:** The latest stable release. Send a pull request if I fall behind.
+Resources:
 
-**Q:** What's the deal with `local-config.php`?  
-**A:** It is for local development, which might have different MySQL credentials or do things like enable query saving or debug mode. This file is ignored by Git, so it doesn't accidentally get checked in. If the file does not exist (which it shouldn't, in production), then WordPress will used the DB credentials defined in `wp-config.php`.
+* http://davidwinter.me/articles/2012/04/09/install-and-manage-wordpress-with-git/
+* http://git-scm.com/book/en/Git-Tools-Submodules
 
-**Q:** What is `memcached.php`?
-**A:** This is for people using memcached as an object cache backend. It should be something like: `<?php return array( "server01:11211", "server02:11211" ); ?>`. Programattic generation of this file is recommended.
+### The Content Directory
 
-**Q:** Does this support WordPress in multisite mode?  
-**A:** No. Not until WordPress supports WordPress-in-a-subdirectory installation for multisite. If you're a WordPress hacker who wants to help with that feature, drop me a line!
+With WordPress isolated in a subrepository we need a custom `/wp-content/` directory. This gives us the oportunity to not include certain plugins and themes in our base install or specify alternate ones. For instance I have removed Hello Dolly.      
+
+#### About mu-plugins
+
+Must-use plugins (a.k.a. mu-plugins) are plugins which are automatically enabled on all sites in the installation. Must-use plugins do not show in the Plugins page of wp-admin and cannot be disabled except by removing the plugin file from the must-use directory. Some mu-plugins I use include WordPress SEO, Backup Buddy and the Ultimate Comming Soon Page. 
+
+#### About themes
+
+The default WordPress themes are symlinked. I use a theme called _s, or underscores for nearly all the sites I develop from scratch. - http://underscores.me/
+
+#### About uploads
+
+The `/wp-content/uploads` directory is one of the locations in my `.gitignore` file. I don't keep my `wp-content/uploads` directory under version control for the following reason:
+
+* As soon as a client starts uploading media on production, the repo will be out of date.
+
+* By default, WordPress generates multiple copies of every uploaded image (thumbnail, medium, large). If all of those images are in your repo that means more bandwidth, larger repos, and no real benefit.
+
+Instead, inspired by [this post](http://stevegrunwell.com/blog/keeping-wordpress-under-version-control-with-git), I use a rewrite rule to check the local `wp-content/uploads` directory for the requested file(s) and, if it doesn’t exist, attempt to load it from production.
+
+Note: Mark Jaquith uses a `/shared` directory and some symlink stuff with Capistrano. 
+
+
+### One 'wp-config' to Rule them All 
+
+Instead of using Mark Jaquith's `local-config.php` method I prefer to use a global config file that checks which environment I am on, dev, staging or production, and loads the relevant database information. It also enables me to do some other nifty things based on the environment.   
+
+Thanks to http://abandon.ie/wordpress-configuration-for-multiple-environments/ for this fantastic solution. 
+

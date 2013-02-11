@@ -1,6 +1,21 @@
-/shared
-/local-config.php
+# Exclude these files from the git repo
+wp-content/backup/*
+wp-content/cache/*
+wp-content/upgrade/*
+wp-content/uploads/*
+sitemap.*
 /sql-dump-*.sql
 /db-sync
-/content/upgrade/
-.DS_Store
+ 
+# Hidden system files
+*.DS_Store
+*[Tt]humbs.db
+*.Trashes
+ 
+# Include these files in previously blocked directories
+!wp-content/uploads/.htaccess
+
+
+
+
+

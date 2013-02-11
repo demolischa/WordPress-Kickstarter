@@ -1,0 +1,8 @@
+# Attempt to load files from production if they're not in your local version
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  # Replace http://www.example.com with your staging or production site's domain name
+  RewriteRule (.*) http://www.example.com/wp-content/uploads/$1
+</IfModule>
